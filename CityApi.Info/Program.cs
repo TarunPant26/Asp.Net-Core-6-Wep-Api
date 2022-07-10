@@ -1,3 +1,6 @@
+using CityApi.Info.Controllers;
+using CityApi.Info.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+builder.Services.AddScoped<IValidator<PointOfInterestCreationDto>, CustomValidator>();
 
 var app = builder.Build();
 

@@ -1,4 +1,6 @@
 ﻿using CityApi.Info.Models;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,13 @@ namespace CityApi.Info.Controllers
     [ApiController]
     public class PointsOfInterestController : ControllerBase
     {
+        private readonly IValidator<PointOfInterestCreationDto> validator;
+
+        public PointsOfInterestController(IValidator<PointOfInterestCreationDto> validator)
+        {
+            this.validator = validator;
+        }
+
         [HttpGet]
         public ActionResult<IEnumerable<PointOfInterestDto>> GetPointOfInterest(int cityId)
         {
@@ -48,11 +57,26 @@ namespace CityApi.Info.Controllers
         /// <param name="pointOfInterest"></param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult<PointOfInterestDto> CreatePointOfInterest(
+        public async Task<ActionResult<PointOfInterestDto>> CreatePointOfInterest(
             int cityId,
             PointOfInterestCreationDto pointOfInterest
             )
         {
+            //as validatoin in model is violating single respoinsiblity priciple as 
+            // it is not the place to validate the model so we used 3rd party Fluent validation
+            ValidationResult result = await validator.ValidateAsync(pointOfInterest);
+
+            if (!result.IsValid)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            //not needed because of API Controller
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest();
+            //}
+
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
 
             if(city == null)
